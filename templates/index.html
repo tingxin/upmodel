@@ -1,0 +1,59 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>ComfyUI导航栏</title>  
+    <style>  
+        body {  
+            font-family: Arial, sans-serif;  
+            margin: 20px;  
+            background-color: #f4f4f9;  
+        }  
+  
+        .container {  
+            max-width: 600px;  
+            margin: 0 auto;  
+            background-color: #fff;  
+            padding: 20px;  
+            border-radius: 8px;  
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  
+        }  
+  
+        #links-container a {  
+            display: block;  
+            padding: 10px;  
+            margin: 5px 0;  
+            text-decoration: none;  
+            color: #007bff;  
+            border-radius: 4px;  
+        }  
+  
+        #links-container a:hover {  
+            background-color: #e0e0e0;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <div class="container">  
+        <h1>ComfyUI导航栏</h1>  
+        <div id="links-container"></div>  
+    </div>  
+  
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>  
+    <script>  
+        $(document).ready(function(){  
+            $.getJSON('/get_links', function(data) {  
+                const container = $('#links-container');  
+                data.forEach(item => {  
+                    const linkElement = $('<a></a>')  
+                                        .text(item.name)  
+                                        .attr('href', item.url)  
+                                        .attr('target', '_blank');  
+                    container.append(linkElement);  
+                });  
+            });  
+        });  
+    </script>  
+</body>  
+</html>

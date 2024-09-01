@@ -1,0 +1,137 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<title>模型下载管理</title>  
+<script src="{{ url_for('static', filename='jquery.min.js') }}"></script>  
+<style>  
+    body {  
+        font-family: Arial, sans-serif;  
+        margin: 20px;  
+        background-color: #f4f4f9;  
+    }  
+  
+    .container {  
+        max-width: 600px;  
+        margin: 0 auto;  
+        background-color: #fff;  
+        padding: 20px;  
+        border-radius: 8px;  
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  
+    }  
+  
+    input[type="text"], select, button {  
+        width: 100%;  
+        padding: 10px;  
+        margin: 10px 0;  
+        display: inline-block;  
+        border: 1px solid #ccc;  
+        border-radius: 4px;  
+        box-sizing: border-box;  
+    }  
+  
+    button {  
+        background-color: #007bff;  
+        color: white;  
+        border: none;  
+        cursor: pointer;  
+    }  
+  
+    button:hover {  
+        background-color: #0056b3;  
+    }  
+  
+    #status {  
+        margin-bottom: 10px;  
+    }  
+  
+    progress {  
+        width: 100%;  
+        height: 20px;  
+    }  
+
+    h1 {  
+        font-size: 50px;  
+        text-align: center;  
+        margin-bottom: 20px;  
+    }  
+</style>  
+</head>  
+<body>  
+    <h1>模型下载管理</h1>  
+    <div class="container">  
+        <input type="text" id="url" placeholder="输入模型的下载地址">  
+        <select id="path">  
+            <option value="custom_nodes">custom_nodes</option> 
+            <option value="checkpoints">checkpoints</option>  
+            <option value="clip">clip</option>
+            <option value="unet">unet</option>
+            <option value="vae">vae</option>
+            <option value="vae_approx">vae</option>
+            <option value="loras">loras</option>
+            <option value="clip_vision">clip_vision</option>
+            <option value="controlnet">controlnet</option>
+            <option value="diffusers">diffusers</option>
+            <option value="embeddings">embeddings</option>
+            <option value="configs">configs</option>
+            <option value="gligen">gligen</option>
+            <option value="hypernetworks">hypernetworks</option>
+            <option value="photomaker">photomaker</option>
+            <option value="style_models">style_models</option>
+            <option value="upscale_models">upscale_models</option>
+            <option value="configs">configs</option>
+
+        </select>  
+        <button id="downloadBtn">提交下载任务</button>  
+        <div id="status">当前状态: </div>  
+        <progress id="progressBar" value="0" max="100"></progress>  
+  
+        <script>  
+            $(document).ready(function() {  
+                $('#downloadBtn').click(function() {  
+                    var url = $('#url').val();  
+                    var path = $('#path').val();  
+  
+                    // 禁用所有输入字段  
+                    $('#url, #path, #downloadBtn').prop('disabled', true);  
+  
+                    $.ajax({  
+                        url: '/download',  
+                        type: 'POST',  
+                        contentType: 'application/json',  
+                        data: JSON.stringify({url: url, path: path}),  
+                        success: function(response) {  
+                            pollStatus(url);  
+                        },  
+                        error: function() {  
+                            alert('Failed to start download');  
+                            // 启用所有输入字段  
+                            $('#url, #path, #downloadBtn').prop('disabled', false);  
+                        }  
+                    });  
+                });  
+  
+                function pollStatus(url) {  
+                    $.getJSON('/status/' + encodeURIComponent(url), function(data) {  
+                        $('#status').text('正在下载中...');  
+                        if (data.status === 'downloading') {  
+                            $('#progressBar').val(data.progress); // 注意这里使用 .val() 而不是 .value  
+                            setTimeout(function() { pollStatus(url); }, 5000);  
+                        } else if (data.status === 'success') {  
+                            $('#status').text('下载成功! 文件保存在：\n' + data.path);  
+                            $('#progressBar').val(100);  
+                            // 启用所有输入字段  
+                            $('#url, #path, #downloadBtn').prop('disabled', false);  
+                        } else {  
+                            $('#status').text('下载失败，请重试，或者检查模型是否可以被下载！');  
+                            $('#progressBar').val(0);  
+                            // 启用所有输入字段  
+                            $('#url, #path, #downloadBtn').prop('disabled', false);  
+                        }  
+                    });  
+                }  
+            });  
+        </script>  
+    </div>  
+</body>  
+</html>
